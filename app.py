@@ -99,9 +99,9 @@ if st.button("🚀 피드백 엑셀 파일 생성하기", type="primary"):
                 
             df_r = pd.DataFrame(feedback_list)
             
-            # 4. 엑셀 파일로 변환하여 다운로드 버튼 제공
+            # 4. 엑셀 파일로 변환하여 다운로드 버튼 제공 (수정된 부분)
             output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            with pd.ExcelWriter(output) as writer:
                 df_q.to_excel(writer, sheet_name='문항정보', index=False)
                 df_a.to_excel(writer, sheet_name='학생답안', index=False)
                 df_r.to_excel(writer, sheet_name='피드백결과', index=False)
