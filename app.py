@@ -5,7 +5,7 @@ import google.generativeai as genai
 import time
 
 # ==========================================
-# 🔑 구글 인공지능 API 설정 (선생님의 API 키 장착)
+# 🔑 구글 인공지능 API 설정 (발급받으신 키 입력)
 # ==========================================
 genai.configure(api_key="AQ.Ab8RN6KnQiUT3P2OLXoVHtYR7TD--dJCjmFAliUIRARhyq9f3A")
 model = genai.GenerativeModel('gemini-1.5-flash')
@@ -70,7 +70,7 @@ traits_input = st.text_area("학생 성향 확인 (수정 가능)", height=150, 
 if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="primary"):
     if json_input and uploaded_file and sheet_name and class_name:
         try:
-            with st.spinner("🧠 AI가 학생별 성향과 난이도, 단원 특성을 입체적으로 심층 분석 중입니다..."):
+            with st.spinner("🧠 AI가 학생별 성향, 점수, 취약 단원의 인과관계를 입체적으로 분석 중입니다..."):
                 data = json.loads(json_input)
                 df_q = pd.DataFrame([
                     {"문항번호": p["problem_no"], "단원명": p["curriculum"]["middle_unit_name"], "난이도": p["difficulty"]["level"]} 
@@ -142,9 +142,9 @@ if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="prim
                         report += f"● 오답문항 : {', '.join(wrong_q_nums) if wrong_q_nums else '없음'}\n"
                         worst_chapter = max(chapter_stats, key=chapter_stats.get) if chapter_stats else "없음"
                         
-                        # --- 💡 더욱 강력하고 입체적인 AI 프롬프트 적용 ---
+                        # --- 💡 강력하게 개조된 입체적 AI 프롬프트 ---
                         ai_prompt = f"""
-                        당신은 학부모 소통에 능숙하고 학생을 깊이 이해하는 전문 수학 학원 원장쌤입니다. 학부모님께 보낼 피드백 코멘트를 1~2문단 분량으로 작성하세요.
+                        당신은 학부모 소통에 능숙하고 학생의 심리와 성적을 입체적으로 꿰뚫어 보는 전문 수학 학원 원장쌤입니다. 학부모님께 보낼 피드백 코멘트를 2문단 내외로 작성하세요.
                         
                         [학생 정보]
                         - 이름: {name}
@@ -154,10 +154,11 @@ if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="prim
                         - 평소 학생 성향: {s_trait}
                         - 학부모 니즈 및 성향: {p_trait}
 
-                        [작성 필수 규칙]
-                        1. 입체적인 인과관계 분석: 단순하게 단원 이름만 나열하지 말고, 학생의 '평소 성향(예: 성격이 급함, 심화에 겁을 먹음 등)'과 '오늘 틀린 오답의 성격'을 논리적으로 연결하여 분석해주세요. (예: 급한 성격 탓에 아는 문제도 연산 실수가 나왔는지, 아니면 정말 해당 단원의 개념 정리가 필요한지 입체적으로 풀어주세요.)
-                        2. 구체적인 개선 방안 제시: 클리닉 시간이나 오답노트 점검, 또는 속도 조절 등 이 약점을 보완할 수 있는 구체적인 액션 플랜을 포함하세요.
-                        3. 따뜻한 마무리: "이 부분을 잘 채워나가면 다음번엔 훨씬 더 좋은 결과가 있을 거라 믿습니다. 가정에서도 많은 격려와 응원 부탁드립니다."라는 뉘앙스로 긍정적인 기대와 함께 응원하며 마무리하세요.
+                        [필수 작성 규칙 (입체적 분석)]
+                        1. 단순한 단원 나열 금지: 단지 "{worst_chapter}을 틀렸다"고 끝내지 말고, 학생의 '평소 성향(예: 성격이 급함, 심화에 겁을 먹음 등)'과 오늘의 오답 결과를 논리적인 인과관계로 엮어서 설명하세요. 
+                           (예시: "성향이 급하여 연산 실수가 잦은 편인데, 오늘 난이도 있는 문제나 연산 과정에서 이 부분이 실속으로 이어졌습니다" 또는 "심화 문제에 지레 겁을 먹는 성향이 있어 해당 단원의 응용 문항에서 고민하다 놓친 부분이 있습니다" 등 입체적으로 분석)
+                        2. 명확한 개선 방안: 클리닉 시간이나 오답노트 정돈, 시간 분배 등 이 약점을 구체적으로 어떻게 메울 것인지 액션 플랜을 제시하세요.
+                        3. 따뜻한 마무리: "이 부분을 꼼꼼히 채워나가면 다음번엔 훨씬 더 좋은 결과가 있을 거라 믿습니다. 가정에서도 많은 격려와 응원 부탁드립니다."라는 뉘앙스로 든든하게 격려하며 마무리하세요.
                         4. 형식: '[선생님 코멘트]' 라는 제목으로 시작하세요.
                         """
                         try:
@@ -170,7 +171,7 @@ if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="prim
                         report += ai_comment
                         final_text_output += f"[{name} 학생 피드백]\n{report}\n" + "-"*50 + "\n\n"
                 
-                st.success("✨ AI 분석이 완료되었습니다! 텍스트 파일을 다운로드하세요.")
+                st.success("✨ AI 입체 분석이 완료되었습니다! 텍스트 파일을 다운로드하세요.")
                 st.download_button(label=f"📥 {class_name}_{sheet_name}_입체AI피드백.txt", data=final_text_output, file_name=f"{class_name}_{sheet_name}_입체AI피드백.txt", mime="text/plain")
         except Exception as e:
             st.error(f"오류가 발생했습니다. 입력 데이터를 확인해주세요: {e}")
