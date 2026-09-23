@@ -5,7 +5,7 @@ import google.generativeai as genai
 import time
 
 # ==========================================
-# 🔑 구글 인공지능 API 설정 (발급받으신 최신 키 입력)
+# 🔑 구글 인공지능 API 설정 (선생님이 주신 최신 키 장착)
 # ==========================================
 genai.configure(api_key="AQ.Ab8RN6KnQiUT3P2OLXoVHtYR7TD--dJCjmFAliUIRARhyq9f3A")
 model = genai.GenerativeModel('gemini-1.5-flash')
