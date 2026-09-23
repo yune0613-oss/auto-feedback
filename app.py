@@ -3,17 +3,57 @@ import pandas as pd
 import json
 
 st.set_page_config(page_title="🌟 자동 피드백 마법사", layout="wide")
-st.title("🌟 우리 학원 자동 피드백 마법사 (결석생 필터링)")
 
-st.markdown("""
-### 1단계: 학원 프로그램 JSON 데이터 붙여넣기
-""")
+# --- 앱 내장 메모리 (세션 상태) 활용 ---
+# 초기 반 세팅 (앱을 처음 열었을 때 기본적으로 있는 반)
+if 'class_templates' not in st.session_state:
+    st.session_state.class_templates = {
+        "공통수학1 기본 월금반": "박선규 / 꼼꼼하지만 속도가 약간 느림 / 시간 분배 연습 강조\n박선우 / 심화 문제에 지레 겁을 먹음 / 칭찬과 격려 위주의 상담 선호\n김은성 / 성격이 급해 연산 실수가 잦음 / 오답노트 철저히\n장주하 / 기본기가 좋음 / 응용 문제 도전 필요",
+        "중3-1 심화 화목반": "김학생 / 선행이 잘 되어 있음 / 고등 과정 연계 짚어주기\n이학생 / 계산 실수가 잦음 / 반복 훈련 원하심"
+    }
+
+# ==========================================
+# ⚙️ 왼쪽 사이드바: 템플릿 관리 메뉴
+# ==========================================
+with st.sidebar:
+    st.header("⚙️ 우리 학원 반 관리")
+    st.write("이곳에서 자유롭게 반을 추가, 수정, 삭제하세요.")
+    
+    st.markdown("---")
+    st.subheader("➕ 새 반 추가 / 기존 반 수정")
+    st.write("※ 기존에 있는 반 이름을 똑같이 적고 내용을 쓰면 내용이 수정(덮어쓰기) 됩니다.")
+    new_class_name = st.text_input("반 이름 입력")
+    new_class_traits = st.text_area("학생 성향 입력 (이름 / 성향 / 어머님니즈)", height=150)
+    
+    if st.button("💾 반 저장하기"):
+        if new_class_name.strip() != "":
+            st.session_state.class_templates[new_class_name] = new_class_traits
+            st.success(f"'{new_class_name}' 저장 완료!")
+        else:
+            st.error("반 이름을 입력하세요.")
+            
+    st.markdown("---")
+    st.subheader("🗑️ 기존 반 삭제")
+    if st.session_state.class_templates:
+        class_to_delete = st.selectbox("삭제할 반 선택", list(st.session_state.class_templates.keys()))
+        if st.button("❌ 선택한 반 삭제"):
+            if class_to_delete in st.session_state.class_templates:
+                del st.session_state.class_templates[class_to_delete]
+                st.success(f"'{class_to_delete}' 삭제 완료!")
+                st.rerun() # 화면 새로고침
+    else:
+        st.write("저장된 반이 없습니다.")
+
+# ==========================================
+# 🌟 메인 화면: 피드백 생성
+# ==========================================
+st.title("🌟 우리 학원 자동 피드백 마법사")
+
+st.markdown("### 1단계: 학원 프로그램 JSON 데이터 붙여넣기")
 json_input = st.text_area("JSON 데이터 입력칸", height=150)
 
 st.markdown("---")
-st.markdown("""
-### 2단계: 학생별 채점 결과 엑셀 파일 업로드
-""")
+st.markdown("### 2단계: 학생별 채점 결과 엑셀 파일 업로드")
 uploaded_file = st.file_uploader("학생 답안 엑셀 파일 선택", type=["xlsx", "xls"])
 
 sheet_name = None
@@ -31,28 +71,19 @@ if uploaded_file is not None:
         st.error(f"엑셀 파일을 읽는 중 오류가 발생했습니다: {e}")
 
 st.markdown("---")
-st.markdown("""
-### 3단계: 관리할 반 선택 및 성향 세팅
-""")
+st.markdown("### 3단계: 피드백을 만들 반 선택")
 
-class_templates = {
-    "직접 입력": "",
-    "공통수학1 기본 월금반": "박선규 / 꼼꼼하지만 속도가 약간 느림 / 시간 분배 연습 강조\n박선우 / 심화 문제에 지레 겁을 먹음 / 칭찬과 격려 위주의 상담 선호\n이재윤 / 식을 대충 쓰는 경향이 있음 / 꼼꼼한 풀이 과정 지도를 원하심\n김은성 / 성격이 급해 연산 실수가 잦음 / 오답노트 철저히\n장주하 / 기본기가 좋음 / 응용 문제 도전 필요",
-    "중3-1 심화 화목반": "김학생 / 선행이 잘 되어 있음 / 고등 과정 연계 짚어주기\n이학생 / 계산 실수가 잦음 / 반복 훈련 원하심",
-}
-
-selected_class = st.selectbox("🎯 피드백을 만들 반을 선택하세요", list(class_templates.keys()))
+options = ["직접 입력"] + list(st.session_state.class_templates.keys())
+selected_class = st.selectbox("🎯 반을 선택하세요", options)
 
 if selected_class == "직접 입력":
     class_name = st.text_input("새로운 반 이름을 입력하세요")
     default_traits = "이름 / 학생성향 / 어머님성향\n"
 else:
     class_name = selected_class
-    default_traits = class_templates[selected_class]
+    default_traits = st.session_state.class_templates[selected_class]
 
-traits_input = st.text_area("학생 및 학부모 성향 입력란 (수정 가능)", height=150,
-                            value=default_traits,
-                            help="이름 / 학생성향 / 어머님성향 순서로 슬래시(/)로 구분해서 적어주세요.")
+traits_input = st.text_area("학생 성향 확인 (이번 피드백에만 일회성으로 수정 가능)", height=150, value=default_traits)
 
 if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primary"):
     if not json_input.strip():
@@ -94,7 +125,6 @@ if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primar
             students_list = []
             all_scores = []
             
-            # 엑셀에서 '비고'라는 글자가 들어간 열 찾기
             bigo_col = None
             for col in df_student_input.columns:
                 if '비고' in str(col):
@@ -110,7 +140,6 @@ if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primar
                 if pd.isna(name) or name == 'nan' or not name or name in ['계', '평균']:
                     continue
                 
-                # 비고란(결석, 결시, 동영상) 체크
                 status = ""
                 if bigo_col and pd.notna(row[bigo_col]):
                     val = str(row[bigo_col]).strip()
@@ -125,11 +154,9 @@ if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primar
                         answers.append(ans)
                 
                 if status:
-                    # 결석생: 통계(all_scores)에 점수를 넣지 않음!
                     student_data = {"학생이름": name, "상태": status, "answers": [], "점수": 0}
                     students_list.append(student_data)
                 else:
-                    # 정상 응시생: 점수 통계에 포함
                     score = sum(1 for ans in answers if ans == 'O')
                     all_scores.append(score)
                     student_data = {"학생이름": name, "상태": "", "점수": score, "answers": answers}
@@ -137,7 +164,7 @@ if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primar
                 
             df_a = pd.DataFrame(students_list)
             
-            # 4. 통계 계산 (정상 응시생 기준)
+            # 4. 통계 계산 
             all_scores.sort(reverse=True)
             max_score = all_scores[0] if all_scores else 0
             avg_score = round(sum(all_scores) / len(all_scores), 1) if all_scores else 0
@@ -151,14 +178,12 @@ if st.button("🚀 선택한 반 피드백 텍스트 생성하기", type="primar
                 status = st_row["상태"]
                 
                 if status:
-                    # 결석생 피드백 (심플하게 출력)
                     report = f"▶ 결과\n{name} : {status} / {total_q}\n★ 반 최고 : {max_score} / {total_q}\n◇ 반 평균 : {avg_score} / {total_q}\n◇ 점수분포 : {', '.join(map(str, all_scores))}\n"
                     final_text_output += f"[{name} 학생 피드백]\n"
                     final_text_output += report + "\n"
                     final_text_output += "-" * 50 + "\n\n"
                     
                 else:
-                    # 정상 응시생 피드백 (코멘트 및 오답 포함)
                     score = st_row["점수"]
                     answers = st_row["answers"]
                     
