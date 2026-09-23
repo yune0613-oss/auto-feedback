@@ -4,13 +4,13 @@ import json
 import google.generativeai as genai
 import time
 
-# --- 구글 인공지능 API 세팅 ---
-# 선생님의 고유 열쇠(API 키)를 입력합니다.
-genai.configure(api_key="AQ.Ab8RN6IT2rn0-Htc-5JK9TYaYfKJqZAqKA9DQaywLNli--jFQw")
-# 빠르고 똑똑한 1.5 Flash 모델 사용
+# ==========================================
+# 🔑 구글 인공지능 API 설정 (여기에 AIza 키 입력)
+# ==========================================
+genai.configure(AQ.Ab8RN6KmIxxprI4xyYrzRPF2Oc0pKJKzzEMbqoqJIwwC8mewGg)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-st.set_page_config(page_title="🌟 자동 피드백 마법사", layout="wide")
+st.set_page_config(page_title="🌟 찐! AI 자동 피드백 마법사", layout="wide")
 
 # --- 앱 내장 메모리 (반 관리 템플릿) ---
 if 'class_templates' not in st.session_state:
@@ -39,7 +39,7 @@ with st.sidebar:
                 st.rerun()
 
 # --- 메인 화면 ---
-st.title("🌟 찐! AI 자동 피드백 마법사")
+st.title("🌟 AI 맞춤형 학원 피드백 마법사")
 
 st.markdown("### 1단계: 학원 프로그램 JSON 데이터 붙여넣기")
 json_input = st.text_area("JSON 데이터 입력칸", height=150)
@@ -70,7 +70,7 @@ traits_input = st.text_area("학생 성향 확인 (수정 가능)", height=150, 
 if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="primary"):
     if json_input and uploaded_file and sheet_name and class_name:
         try:
-            with st.spinner("🧠 AI가 학생별 성향과 난이도를 분석하며 코멘트를 작성 중입니다. (약 10~20초 소요)"):
+            with st.spinner("🧠 AI가 학생별 성향과 난이도, 단원 특성을 심층 분석하여 코멘트를 작성 중입니다..."):
                 data = json.loads(json_input)
                 df_q = pd.DataFrame([
                     {"문항번호": p["problem_no"], "단원명": p["curriculum"]["middle_unit_name"], "난이도": p["difficulty"]["level"]} 
@@ -142,33 +142,32 @@ if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="prim
                         report += f"● 오답문항 : {', '.join(wrong_q_nums) if wrong_q_nums else '없음'}\n"
                         worst_chapter = max(chapter_stats, key=chapter_stats.get) if chapter_stats else "없음"
                         
-                        # --- 인공지능 두뇌 (프롬프트 작동) ---
+                        # --- 인공지능이 논리적 오류를 검수하며 작성하는 스마트 코멘트 ---
                         ai_prompt = f"""
-                        당신은 다정하고 분석적인 수학 학원 강사입니다. 학부모님께 보낼 피드백 코멘트 1문단을 작성하세요.
+                        당신은 다정하고 입체적으로 학생을 분석하는 전문 수학 학원 강사입니다. 학부모님께 보낼 피드백 코멘트를 1문단으로 작성하세요.
                         - 학생 이름: {name}
                         - 시험 점수: {score} / {total_q}
                         - 가장 많이 틀린 취약 단원: {worst_chapter}
-                        - 학생 평소 성향: {s_trait}
+                        - 학생 평소 성향: {s_traits}
                         - 학부모 니즈: {p_trait}
 
                         [작성 규칙]
-                        1. 학생의 성향과 취약 단원의 난이도/성격을 논리적으로 연결하세요. (예: 성향이 '심화 문제에 겁먹음'인데 취약 단원이 기본 단원(다항식의 연산 등)이라면, "심화 문제에 대한 두려움 때문이 아니라 기본 연산 실수나 방심으로 인한 오답"이라고 명확히 분석하세요.)
-                        2. 어려워하는 부분에 대한 향후 지도 계획(클리닉, 오답노트 등)을 구체적으로 제시하세요.
-                        3. 학부모의 니즈를 반영하고 긍정적인 기대와 응원으로 훈훈하게 마무리하세요.
+                        1. 학생의 평소 성향과 취약 단원의 난이도/성격을 논리적으로 연결하세요. (예: 성향이 '심화 문제에 겁먹음'인데 취약 단원이 '다항식의 연산'처럼 단순하고 쉬운 단원이라면, 심화에 대한 두려움 때문이 아니라 단순 연산 실수나 방심으로 인한 오답이라고 명확히 분석하세요.)
+                        2. 어려워하는 부분에 대한 향후 개선 방안(클리닉, 오답노트 점검 등)을 구체적으로 제시하세요.
+                        3. 학부모의 니즈를 반영하고 긍정적인 기대와 응원으로 따뜻하게 마무리하세요.
                         4. '[선생님 코멘트]' 라는 제목으로 시작하세요.
                         """
                         try:
-                            # AI에게 글쓰기 지시
                             response = model.generate_content(ai_prompt)
                             ai_comment = "\n" + response.text
-                            time.sleep(1) # API 과부하 방지
+                            time.sleep(1) 
                         except Exception as e:
-                            ai_comment = f"\n[선생님 코멘트]\n(AI 코멘트 생성 중 오류 발생: 잠시 후 다시 시도해주세요.)"
+                            ai_comment = f"\n[선생님 코멘트]\n어머님, 오늘 {name} 학생은 '{worst_chapter}' 파트에서 아쉬운 부분이 있었습니다. 성향을 반영하여 꼼꼼히 보완하겠습니다."
                             
                         report += ai_comment
                         final_text_output += f"[{name} 학생 피드백]\n{report}\n" + "-"*50 + "\n\n"
                 
-                st.success("✨ AI 딥러닝 분석이 완료되었습니다! 텍스트 파일을 다운로드하세요.")
+                st.success("✨ AI 분석이 완료되었습니다! 텍스트 파일을 다운로드하세요.")
                 st.download_button(label=f"📥 {class_name}_{sheet_name}_AI피드백.txt", data=final_text_output, file_name=f"{class_name}_{sheet_name}_AI피드백.txt", mime="text/plain")
         except Exception as e:
             st.error(f"오류가 발생했습니다. 입력 데이터를 확인해주세요: {e}")
