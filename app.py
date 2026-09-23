@@ -5,9 +5,9 @@ import google.generativeai as genai
 import time
 
 # ==========================================
-# 🔑 구글 인공지능 API 설정 (여기에 AIza 키 입력)
+# 🔑 구글 인공지능 API 설정 (발급받으신 최신 키 입력)
 # ==========================================
-genai.configure(AQ.Ab8RN6KmIxxprI4xyYrzRPF2Oc0pKJKzzEMbqoqJIwwC8mewGg)
+genai.configure(api_key="AQ.Ab8RN6KnQiUT3P2OLXoVHtYR7TD--dJCjmFAliUIRARhyq9f3A")
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="🌟 찐! AI 자동 피드백 마법사", layout="wide")
@@ -148,7 +148,7 @@ if st.button("🚀 AI가 분석한 완벽한 피드백 생성하기", type="prim
                         - 학생 이름: {name}
                         - 시험 점수: {score} / {total_q}
                         - 가장 많이 틀린 취약 단원: {worst_chapter}
-                        - 학생 평소 성향: {s_traits}
+                        - 학생 평소 성향: {s_trait}
                         - 학부모 니즈: {p_trait}
 
                         [작성 규칙]
